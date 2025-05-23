@@ -1,0 +1,22 @@
+{
+  "name": "enhanced-status-bot",
+  "version": "1.0.0",
+  "description": "An enhanced Discord status bot with beautiful UI and comprehensive features",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "nodemon src/index.js"
+  },
+  "dependencies": {
+    "discord.js": "^14.14.1",
+    "dotenv": "^16.3.1",
+    "mongoose": "^8.0.0",
+    "moment": "^2.29.4",
+    "canvas": "^2.11.2",
+    "chart.js": "^4.4.0",
+    "node-schedule": "^2.1.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  }
+} 
