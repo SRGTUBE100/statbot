@@ -10,6 +10,7 @@ if (!TOKEN) {
     process.exit(1);
 }
 
+// Initialize client with all necessary intents
 const client = new Client({
     intents: [
         GatewayIntentBits.Guilds,
@@ -20,32 +21,53 @@ const client = new Client({
     ]
 });
 
+// Collections for commands and cooldowns
 client.commands = new Collection();
 client.cooldowns = new Collection();
 
+console.log('Starting bot initialization...');
+
 // Load commands
 const commandsPath = path.join(__dirname, 'commands');
+console.log(`Loading commands from: ${commandsPath}`);
+
 const commandFiles = fs.readdirSync(commandsPath).filter(file => file.endsWith('.js'));
+console.log(`Found ${commandFiles.length} command files`);
 
 for (const file of commandFiles) {
     const filePath = path.join(commandsPath, file);
-    const command = require(filePath);
-    if ('data' in command && 'execute' in command) {
-        client.commands.set(command.data.name, command);
+    try {
+        const command = require(filePath);
+        if ('data' in command && 'execute' in command) {
+            client.commands.set(command.data.name, command);
+            console.log(`Loaded command: ${command.data.name}`);
+        } else {
+            console.log(`[WARNING] The command at ${filePath} is missing a required "data" or "execute" property.`);
+        }
+    } catch (error) {
+        console.error(`Error loading command ${file}:`, error);
     }
 }
 
 // Load events
 const eventsPath = path.join(__dirname, 'events');
+console.log(`Loading events from: ${eventsPath}`);
+
 const eventFiles = fs.readdirSync(eventsPath).filter(file => file.endsWith('.js'));
+console.log(`Found ${eventFiles.length} event files`);
 
 for (const file of eventFiles) {
     const filePath = path.join(eventsPath, file);
-    const event = require(filePath);
-    if (event.once) {
-        client.once(event.name, (...args) => event.execute(...args));
-    } else {
-        client.on(event.name, (...args) => event.execute(...args));
+    try {
+        const event = require(filePath);
+        if (event.once) {
+            client.once(event.name, (...args) => event.execute(...args));
+        } else {
+            client.on(event.name, (...args) => event.execute(...args));
+        }
+        console.log(`Loaded event: ${event.name}`);
+    } catch (error) {
+        console.error(`Error loading event ${file}:`, error);
     }
 }
 
@@ -81,4 +103,18 @@ process.on('unhandledRejection', error => {
     console.error('Unhandled promise rejection:', error);
 });
 
-client.login(TOKEN); 
+// Add debug events
+client.on('debug', info => {
+    console.log('Debug:', info);
+});
+
+client.on('warn', info => {
+    console.log('Warning:', info);
+});
+
+// Login with error handling
+console.log('Attempting to log in...');
+client.login(TOKEN).catch(error => {
+    console.error('Failed to login:', error);
+    process.exit(1);
+}); 
