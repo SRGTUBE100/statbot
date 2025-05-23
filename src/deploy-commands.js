@@ -1,7 +1,15 @@
-require('dotenv').config();
 const { REST, Routes } = require('discord.js');
 const fs = require('node:fs');
 const path = require('node:path');
+
+// Get environment variables from Railway
+const TOKEN = process.env.DISCORD_TOKEN;
+const CLIENT_ID = process.env.CLIENT_ID;
+
+if (!TOKEN || !CLIENT_ID) {
+    console.error('Missing required environment variables! Make sure DISCORD_TOKEN and CLIENT_ID are set in Railway variables.');
+    process.exit(1);
+}
 
 const commands = [];
 const commandsPath = path.join(__dirname, 'commands');
@@ -17,7 +25,7 @@ for (const file of commandFiles) {
     }
 }
 
-const rest = new REST().setToken(process.env.DISCORD_TOKEN);
+const rest = new REST().setToken(TOKEN);
 
 (async () => {
     try {
@@ -25,7 +33,7 @@ const rest = new REST().setToken(process.env.DISCORD_TOKEN);
 
         // The put method is used to fully refresh all commands globally
         const data = await rest.put(
-            Routes.applicationCommands(process.env.CLIENT_ID),
+            Routes.applicationCommands(CLIENT_ID),
             { body: commands },
         );
 
