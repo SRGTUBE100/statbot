@@ -1,10 +1,23 @@
-const { Events } = require('discord.js');
+const { Events, ActivityType } = require('discord.js');
 
 module.exports = {
     name: Events.ClientReady,
     once: true,
     execute(client) {
-        console.log(`Ready! Logged in as ${client.user.tag}`);
-        client.user.setActivity('with status updates | /help', { type: 'PLAYING' });
+        console.log('Bot is starting up...');
+        console.log(`Logged in as ${client.user.tag}`);
+        console.log(`Bot ID: ${client.user.id}`);
+        console.log(`Serving ${client.guilds.cache.size} servers`);
+        
+        try {
+            client.user.setActivity('status updates | /help', { 
+                type: ActivityType.Watching 
+            });
+            console.log('Successfully set activity status');
+        } catch (error) {
+            console.error('Error setting activity:', error);
+        }
+        
+        console.log('Bot is now fully ready!');
     },
 }; 
