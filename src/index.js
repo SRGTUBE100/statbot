@@ -10,6 +10,13 @@ if (!TOKEN) {
     process.exit(1);
 }
 
+// Print startup message
+console.log('='.repeat(50));
+console.log('Bot process starting...');
+console.log('Node version:', process.version);
+console.log('Discord.js version:', require('discord.js').version);
+console.log('='.repeat(50));
+
 // Initialize client with all necessary intents
 const client = new Client({
     intents: [
@@ -111,6 +118,11 @@ client.on('debug', info => {
 client.on('warn', info => {
     console.log('Warning:', info);
 });
+
+// Health check interval
+setInterval(() => {
+    console.log(`[Health Check] Bot is running. Connected to ${client.guilds.cache.size} servers.`);
+}, 60000); // Log every minute
 
 // Login with error handling
 console.log('Attempting to log in...');
