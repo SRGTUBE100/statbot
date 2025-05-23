@@ -1,5 +1,5 @@
 require('dotenv').config();
-const { Client, GatewayIntentBits, Collection, EmbedBuilder } = require('discord.js');
+const { Client, GatewayIntentBits, Collection, EmbedBuilder, Events } = require('discord.js');
 const fs = require('fs');
 const path = require('path');
 
@@ -27,6 +27,29 @@ for (const file of commandFiles) {
         client.commands.set(command.data.name, command);
     }
 }
+
+// Handle slash commands
+client.on(Events.InteractionCreate, async interaction => {
+    if (!interaction.isChatInputCommand()) return;
+
+    const command = client.commands.get(interaction.commandName);
+
+    if (!command) {
+        console.error(`No command matching ${interaction.commandName} was found.`);
+        return;
+    }
+
+    try {
+        await command.execute(interaction);
+    } catch (error) {
+        console.error(error);
+        if (interaction.replied || interaction.deferred) {
+            await interaction.followUp({ content: 'There was an error while executing this command!', ephemeral: true });
+        } else {
+            await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });
+        }
+    }
+});
 
 // Load events
 const eventsPath = path.join(__dirname, 'events');
