@@ -2,6 +2,27 @@ const { Client, GatewayIntentBits, Collection, Events } = require('discord.js');
 const fs = require('fs');
 const path = require('path');
 
+// Process error handling
+process.on('uncaughtException', (error) => {
+    console.error('Uncaught Exception:', error);
+    console.error(error.stack);
+});
+
+process.on('unhandledRejection', (error) => {
+    console.error('Unhandled Rejection:', error);
+    if (error.stack) console.error(error.stack);
+});
+
+process.on('SIGTERM', () => {
+    console.log('SIGTERM received. Performing graceful shutdown...');
+    process.exit(0);
+});
+
+process.on('SIGINT', () => {
+    console.log('SIGINT received. Performing graceful shutdown...');
+    process.exit(0);
+});
+
 // Get environment variables from Railway
 const TOKEN = process.env.DISCORD_TOKEN;
 
@@ -13,8 +34,10 @@ if (!TOKEN) {
 // Print startup message
 console.log('='.repeat(50));
 console.log('Bot process starting...');
+console.log('Environment:', process.env.NODE_ENV);
 console.log('Node version:', process.version);
 console.log('Discord.js version:', require('discord.js').version);
+console.log('Process ID:', process.pid);
 console.log('='.repeat(50));
 
 // Initialize client with all necessary intents
@@ -106,10 +129,6 @@ client.on('error', error => {
     console.error('Discord client error:', error);
 });
 
-process.on('unhandledRejection', error => {
-    console.error('Unhandled promise rejection:', error);
-});
-
 // Add debug events
 client.on('debug', info => {
     console.log('Debug:', info);
@@ -122,11 +141,23 @@ client.on('warn', info => {
 // Health check interval
 setInterval(() => {
     console.log(`[Health Check] Bot is running. Connected to ${client.guilds.cache.size} servers.`);
+    console.log(`[Health Check] Memory usage: ${Math.round(process.memoryUsage().heapUsed / 1024 / 1024)}MB`);
 }, 60000); // Log every minute
 
-// Login with error handling
+// Login with error handling and timeout
 console.log('Attempting to log in...');
-client.login(TOKEN).catch(error => {
-    console.error('Failed to login:', error);
+const loginTimeout = setTimeout(() => {
+    console.error('Login attempt timed out after 30 seconds');
     process.exit(1);
-}); 
+}, 30000);
+
+client.login(TOKEN)
+    .then(() => {
+        clearTimeout(loginTimeout);
+        console.log('Successfully logged in!');
+    })
+    .catch(error => {
+        clearTimeout(loginTimeout);
+        console.error('Failed to login:', error);
+        process.exit(1);
+    }); 
