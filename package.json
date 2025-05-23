@@ -4,9 +4,10 @@
   "description": "An enhanced Discord status bot with beautiful UI and comprehensive features",
   "main": "src/index.js",
   "scripts": {
-    "start": "node src/deploy-commands.js && node src/index.js",
+    "start": "node src/index.js",
+    "deploy": "node src/deploy-commands.js",
     "dev": "nodemon src/index.js",
-    "deploy": "node src/deploy-commands.js"
+    "full": "npm run deploy && npm start"
   },
   "dependencies": {
     "discord.js": "^14.14.1",
