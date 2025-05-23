@@ -45,5 +45,9 @@ COPY --from=builder /app .
 # Set environment variables
 ENV NODE_ENV=production
 
-# Deploy commands first, then start the bot
-CMD ["npm", "run", "full"] 
+# Create a startup script
+RUN echo "#!/bin/bash\nnode src/deploy-commands.js && echo 'Starting bot...' && exec node src/index.js" > start.sh && \
+    chmod +x start.sh
+
+# Use the startup script
+CMD ["./start.sh"] 
