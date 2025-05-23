@@ -1,7 +1,14 @@
-require('dotenv').config();
-const { Client, GatewayIntentBits, Collection, EmbedBuilder, Events } = require('discord.js');
+const { Client, GatewayIntentBits, Collection, Events } = require('discord.js');
 const fs = require('fs');
 const path = require('path');
+
+// Get environment variables from Railway
+const TOKEN = process.env.DISCORD_TOKEN;
+
+if (!TOKEN) {
+    console.error('Missing DISCORD_TOKEN! Make sure it is set in Railway variables.');
+    process.exit(1);
+}
 
 const client = new Client({
     intents: [
@@ -28,6 +35,20 @@ for (const file of commandFiles) {
     }
 }
 
+// Load events
+const eventsPath = path.join(__dirname, 'events');
+const eventFiles = fs.readdirSync(eventsPath).filter(file => file.endsWith('.js'));
+
+for (const file of eventFiles) {
+    const filePath = path.join(eventsPath, file);
+    const event = require(filePath);
+    if (event.once) {
+        client.once(event.name, (...args) => event.execute(...args));
+    } else {
+        client.on(event.name, (...args) => event.execute(...args));
+    }
+}
+
 // Handle slash commands
 client.on(Events.InteractionCreate, async interaction => {
     if (!interaction.isChatInputCommand()) return;
@@ -51,20 +72,6 @@ client.on(Events.InteractionCreate, async interaction => {
     }
 });
 
-// Load events
-const eventsPath = path.join(__dirname, 'events');
-const eventFiles = fs.readdirSync(eventsPath).filter(file => file.endsWith('.js'));
-
-for (const file of eventFiles) {
-    const filePath = path.join(eventsPath, file);
-    const event = require(filePath);
-    if (event.once) {
-        client.once(event.name, (...args) => event.execute(...args));
-    } else {
-        client.on(event.name, (...args) => event.execute(...args));
-    }
-}
-
 // Error handling
 client.on('error', error => {
     console.error('Discord client error:', error);
@@ -74,4 +81,4 @@ process.on('unhandledRejection', error => {
     console.error('Unhandled promise rejection:', error);
 });
 
-client.login(process.env.DISCORD_TOKEN); 
+client.login(TOKEN); 
